@@ -10,27 +10,28 @@ def run(test):
 def bytes_to_str(b, encoding="ascii"):
     """Returns a string version of the bytes"""
     # use the bytes.decode(encoding) method
-    raise NotImplementedError
+    return b.decode(encoding);
+   
 
 
 def str_to_bytes(s, encoding="ascii"):
     """Returns a bytes version of the string"""
     # use the string.encode(encoding) method
-    raise NotImplementedError
+    return s.encode(encoding)
 
 
 def little_endian_to_int(b):
     """little_endian_to_int takes byte sequence as a little-endian number.
     Returns an integer"""
     # use the int.from_bytes(b, <endianness>) method
-    raise NotImplementedError
+    return int.from_bytes(b, "little");
 
 
 def int_to_little_endian(n, length):
     """endian_to_little_endian takes an integer and returns the little-endian
     byte sequence of length"""
     # use the int.to_bytes(length, <endianness>) method
-    raise NotImplementedError
+    return n.to_bytes(length, "little");
 
 
 class HelperTest(TestCase):
