@@ -457,7 +457,11 @@ class S256Point(Point):
         # u = z / s
         # v = r / s
         # u*G + v*P should have as the x coordinate, r
-        raise NotImplementedError
+        u = z * pow(sig.s, -1, N)
+        v = sig.r * pow(sig.s, -1, N)
+        print(self)
+        print(u * G + v*self)
+        return ((u * G + v*self).x.num == sig.r)
 
     @classmethod
     def parse(self, sec_bin):
@@ -685,7 +689,10 @@ class PrivateKey:
         # s = (z+r*secret) / k
         # return an instance of Signature:
         # Signature(r, s)
-        raise NotImplementedError
+        k = randint(0,N)
+        r = (k*G).x.num
+        s = (z+r*self.secret) * pow(k,-1,N)
+        return Signature(r,s)
 
 
 class PrivateKeyTest(TestCase):
