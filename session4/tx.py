@@ -2,7 +2,7 @@ from io import BytesIO
 from unittest import TestCase
 
 import json
-import requests
+# import requests
 
 from helper import (
     encode_varint,
@@ -113,23 +113,41 @@ class Tx:
         """Returns the byte serialization of the transaction"""
         # serialize version (4 bytes, little endian)
         # encode_varint on the number of inputs
+        
+        retVal = int_to_little_endian(self.version, 4)
+        retVal += encode_varint(len(self.tx_ins))
         # iterate inputs
-        # serialize each input
+        for tx_in in self.tx_ins:
+            # serialize each input
+            retVal += tx_in.serialize()
+        
         # encode_varint on the number of outputs
+        retVal += encode_varint(len(self.tx_outs))
         # iterate outputs
-        # serialize each output
+        for tx_out in self.tx_outs:
+            # serialize each output
+            retVal += tx_out.serialize()
+       
         # serialize locktime (4 bytes, little endian)
-        raise NotImplementedError
+        retVal += int_to_little_endian(self.locktime, 4)
+        return retVal
 
     def fee(self):
         """Returns the fee of this transaction in satoshi"""
         # initialize input sum and output sum
+        sumIn = 0
+        sumOut = 0
         # iterate through inputs
-        # for each input get the value and add to input sum
+        for tx_in in self.tx_ins:
+            # for each input get the value and add to input sum
+            sumIn += tx_in.value()
+            
         # iterate through outputs
-        # for each output get the amount and add to output sum
+        for tx_out in self.tx_outs:
+            # for each output get the amount and add to output sum
+            sumOut += tx_out.amount
         # return input sum - output sum
-        raise NotImplementedError
+        return sumIn - sumOut
 
     def sig_hash(self, input_index):
         """Returns the integer representation of the hash that needs to get
@@ -187,10 +205,14 @@ class TxIn:
     def serialize(self):
         """Returns the byte serialization of the transaction input"""
         # serialize prev_tx, little endian
+        retVal = self.prev_tx[::-1]
         # serialize prev_index, 4 bytes, little endian
+        retVal += int_to_little_endian(self.prev_index,4)
         # serialize the script_sig
+        retVal += self.script_sig.serialize()
         # serialize sequence, 4 bytes, little endian
-        raise NotImplementedError
+        retVal += int_to_little_endian(self.sequence,4)
+        return retVal
 
     def fetch_tx(self, network="mainnet"):
         return TxFetcher.fetch(self.prev_tx.hex(), network=network)
@@ -202,7 +224,11 @@ class TxIn:
         # use self.fetch_tx to get the transaction
         # get the output at self.prev_index
         # return the amount property
-        raise NotImplementedError
+        return self.fetch_tx(network).tx_outs[self.prev_index].amount
+       
+     
+        
+        
 
     def script_pubkey(self, network="mainnet"):
         """Get the scriptPubKey by looking up the tx hash
@@ -211,7 +237,7 @@ class TxIn:
         # use self.fetch_tx to get the transaction
         # get the output at self.prev_index
         # return the script_pubkey property
-        raise NotImplementedError
+        return self.fetch_tx(network).tx_outs[self.prev_index].script_pubkey
 
 
 class TxOut:
@@ -240,7 +266,9 @@ class TxOut:
         """Returns the byte serialization of the transaction output"""
         # serialize amount, 8 bytes, little endian
         # serialize the script_pubkey
-        raise NotImplementedError
+        retVal = int_to_little_endian(self.amount, 8)
+        retVal += self.script_pubkey.serialize()
+        return retVal
 
 
 class TxTest(TestCase):
