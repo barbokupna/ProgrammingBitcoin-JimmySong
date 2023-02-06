@@ -701,19 +701,38 @@ def op_checkmultisig(stack, z):
     # OP_CHECKMULTISIG bug
     stack.pop()
     try:
+        points = []
+        signatures = []
         # parse the sec_pubkeys into an array of points
+        for sec in sec_pubkeys:
+            points.append(S256Point.parse(sec))
+            
         # parse the der_signatures into an array of signatures
+        for der in der_signatures:
+            signatures.append(Signature.parse(der))
+            
         # loop through the signatures
+        for sig in signatures: 
             # bail early if we don't have any points left
                 # add a 0 to the stack using encode_num(0)
                 # return True
-            # while we have points
+            if len(points) ==0:
+                stack.append( encode_num(0))
+                return True
+            
+             # while we have points
                 # get the point at the front (points.pop(0))
+               
+            while(len(points)):
+                point = points.pop(0)
                 # see if this point can verify this sig with this z
+                if point.verify(z, sig): 
+                    break
                     # break if so, this sig is valid!
+                   
         # if we made it this far, we have to add a 1 to the stack
+        stack.append( encode_num(1))
             # use encode_num(1)
-        raise NotImplementedError
     except (ValueError, SyntaxError):
         return False
     return True

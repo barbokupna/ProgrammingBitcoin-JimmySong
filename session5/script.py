@@ -175,13 +175,22 @@ class Script:
         # there should be exactly 5 commands
         # OP_DUP (0x76), OP_HASH160 (0xa9), 20-byte hash, OP_EQUALVERIFY (0x88),
         # OP_CHECKSIG (0xac)
-        raise NotImplementedError
+        if len(self.commands) == 5 and self.commands[0] == 0x76 and self.commands[1] == 0xa9 and type(self.commands[2])==bytes and len(self.commands[2]) == 20 and self.commands[3] == 0x88 and self.commands[4] == 0xac: 
+            return True
+        else: 
+            return False
 
     def is_p2sh_script_pubkey(self):
         """Returns whether this follows the
         OP_HASH160 <20 byte hash> OP_EQUAL pattern."""
         # there should be exactly 3 commands
         # OP_HASH160 (0xa9), 20-byte hash, OP_EQUAL (0x87)
+        if len(self.commands) == 3 and self.commands[0] == 0xa9 and type(self.commands[1])==bytes and len(self.commands[1])==20 and self.commands[2] == 0x87:
+            return True
+        else: 
+            return False
+
+        
         raise NotImplementedError
 
     def address(self, network="mainnet"):
@@ -193,9 +202,12 @@ class Script:
             # hash160 is the 2nd command
             # convert to p2sh address using h160_to_p2sh_address (remember network)
         # raise a ValueError
-        raise NotImplementedError
-
-
+        if self.is_p2pkh_script_pubkey(): 
+            return h160_to_p2pkh_address(self.commands[2], network)
+        if self.is_p2sh_script_pubkey(): 
+            return h160_to_p2sh_address(self.commands[1], network)
+        raise ValueError("address error")
+        
 class ScriptTest(TestCase):
     def test_parse(self):
         script_pubkey = BytesIO(
